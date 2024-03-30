@@ -112,9 +112,15 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  HAL_UART_Transmit(&huart2, "AAAA", 6, 100);
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_9);
-	  HAL_Delay(1000);
+	  if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_8)){
+		  HAL_UART_Transmit(&huart2, "INPUT!", 6, 100);
+		  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_9);
+		  HAL_Delay(1000);
+	  } else {
+		  HAL_UART_Transmit(&huart2, "EMPTY :(", 6, 100);
+		  HAL_Delay(1000);
+	  }
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
