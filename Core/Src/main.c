@@ -98,7 +98,7 @@ int main(void)
       HAL_Delay(20);
 
       // Change signal pin to read
-      // GPIOA->MODER &= ~(16<<1);                             	// Set the 16th bit (MODE8) to zero (Input mode)
+      GPIOA->MODER &= ~(1<<16);                             	// Set the 16th bit (MODE8) to zero (Input mode)
 
       // PIN A9 (D8) lights an external LED for sanity check
       HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET); 		// Pull voltage up
@@ -112,7 +112,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  HAL_UART_Transmit(&huart2, "YYYY", 6, 100);
+	  HAL_UART_Transmit(&huart2, "MOO", 6, 100);
 	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
 	  HAL_Delay(1000);
 	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
