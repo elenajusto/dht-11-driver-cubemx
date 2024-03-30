@@ -113,9 +113,8 @@ int main(void)
   while (1)
   {
 	  HAL_UART_Transmit(&huart2, "AAAA", 6, 100);
-	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET);
+	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_9);
 	  HAL_Delay(1000);
-	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
