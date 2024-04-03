@@ -118,10 +118,8 @@ int main(void)
 	  sensorValue = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_8);
 	  if (sensorValue){
 		  HAL_UART_Transmit(&huart2, "HIGH\n", 6, 100);
-		  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_9);
 	  } else if (!sensorValue) {
 		  HAL_UART_Transmit(&huart2, "LOW\n", 6, 100);
-		  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_9);
 	  } else {
 		  HAL_UART_Transmit(&huart2, "EMPTY\n", 6, 100);
 		  HAL_Delay(500);
