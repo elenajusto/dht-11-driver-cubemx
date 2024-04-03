@@ -127,11 +127,17 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  // Turn off LED indicators
 	  HAL_GPIO_WritePin(LED_BLUE_0_GPIO_Port, LED_BLUE_0_Pin, GPIO_PIN_RESET);
 	  HAL_GPIO_WritePin(LED_GREEN_1_GPIO_Port, LED_GREEN_1_Pin, GPIO_PIN_RESET);
 	  HAL_GPIO_WritePin(LED_RED_ERROR_GPIO_Port, LED_RED_ERROR_Pin, GPIO_PIN_RESET);
 
-	  sensorValue = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_8);
+	  // sensorValue = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_8);		// Digital signal read
+
+	  HAL_ADC_Start_IT(&hadc1); 							    // Start ADC Conversion
+	  sensorValue = HAL_ADC_GetValue(&hadc1);					// Get ADC value from ADC pin
+	  HAL_ADC_PollForConversion(&hadc1, 100);					// Clear some ADC flag
+
 
 	  if (sensorValue){
 		  HAL_UART_Transmit(&huart2, "HIGH\n", 6, 100);
