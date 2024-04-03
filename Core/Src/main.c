@@ -103,11 +103,19 @@ int main(void)
   // Change signal pin to read
   GPIOA->MODER &= ~(1<<16);                             	// Set the 16th bit (MODE8) to zero (Input mode)
 
-  // PIN A9 (D8) lights an external LED for sanity check
-  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET); 		// Pull voltage up
-  //HAL_Delay(5000);
-  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);
-  //HAL_Delay(5000);
+  // LED startup indicator
+  HAL_GPIO_WritePin(LED_BLUE_0_GPIO_Port, LED_BLUE_0_Pin, GPIO_PIN_SET);
+  HAL_Delay(500);
+  HAL_GPIO_WritePin(LED_GREEN_1_GPIO_Port, LED_GREEN_1_Pin, GPIO_PIN_SET);
+  HAL_Delay(500);
+  HAL_GPIO_WritePin(LED_RED_ERROR_GPIO_Port, LED_RED_ERROR_Pin, GPIO_PIN_SET);
+  HAL_Delay(1000);
+  HAL_GPIO_WritePin(LED_BLUE_0_GPIO_Port, LED_BLUE_0_Pin, GPIO_PIN_RESET);
+  HAL_Delay(500);
+  HAL_GPIO_WritePin(LED_GREEN_1_GPIO_Port, LED_GREEN_1_Pin, GPIO_PIN_RESET);
+  HAL_Delay(500);
+  HAL_GPIO_WritePin(LED_RED_ERROR_GPIO_Port, LED_RED_ERROR_Pin, GPIO_PIN_RESET);
+  HAL_Delay(500);
 
   /* USER CODE END 2 */
 
