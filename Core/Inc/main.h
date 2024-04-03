@@ -59,6 +59,8 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define MCO_Pin GPIO_PIN_0
 #define MCO_GPIO_Port GPIOF
+#define SIGNAL_DHT_ANALOG_Pin GPIO_PIN_4
+#define SIGNAL_DHT_ANALOG_GPIO_Port GPIOA
 #define LED_GREEN_Pin GPIO_PIN_5
 #define LED_GREEN_GPIO_Port GPIOA
 #define LED_BLUE_0_Pin GPIO_PIN_14
