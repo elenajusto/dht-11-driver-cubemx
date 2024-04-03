@@ -89,22 +89,25 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  	  /* START PHASE */
+  /* ---- START PHASE ---- */
 
-  	  // PIN A8 (D7) talks to the signal line on sensor
-  	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET); 	// Pull voltage down
-      HAL_Delay(18);
-      HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET); 		// Pull voltage up
-      HAL_Delay(20);
+  // Variables
+  int sensorValue;
 
-      // Change signal pin to read
-      GPIOA->MODER &= ~(1<<16);                             	// Set the 16th bit (MODE8) to zero (Input mode)
+  // PIN A8 (D7) talks to the signal line on sensor
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET); 	// Pull voltage down
+  HAL_Delay(18);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET); 		// Pull voltage up
+  HAL_Delay(20);
 
-      // PIN A9 (D8) lights an external LED for sanity check
-      HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET); 		// Pull voltage up
-      HAL_Delay(5000);
-      HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);
-      HAL_Delay(5000);
+  // Change signal pin to read
+  GPIOA->MODER &= ~(1<<16);                             	// Set the 16th bit (MODE8) to zero (Input mode)
+
+  // PIN A9 (D8) lights an external LED for sanity check
+  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET); 		// Pull voltage up
+  //HAL_Delay(5000);
+  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);
+  //HAL_Delay(5000);
 
   /* USER CODE END 2 */
 
@@ -112,13 +115,16 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_8)){
-		  HAL_UART_Transmit(&huart2, "INPUT:", 6, 100);
+	  sensorValue = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_8);
+	  if (sensorValue){
+		  HAL_UART_Transmit(&huart2, "HIGH\n", 6, 100);
 		  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_9);
-		  //HAL_Delay(1000);
+	  } else if (!sensorValue) {
+		  HAL_UART_Transmit(&huart2, "LOW\n", 6, 100);
+		  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_9);
 	  } else {
-		  HAL_UART_Transmit(&huart2, "EMPTY :(", 6, 100);
-		  //HAL_Delay(1000);
+		  HAL_UART_Transmit(&huart2, "EMPTY\n", 6, 100);
+		  HAL_Delay(500);
 	  }
 
     /* USER CODE END WHILE */
