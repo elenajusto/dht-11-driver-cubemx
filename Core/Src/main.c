@@ -107,6 +107,9 @@ int main(void)
   // Change signal pin to read
   GPIOA->MODER &= ~(1<<16);                             	// Set the 16th bit (MODE8) to zero (Input mode)
 
+  // UART Startup Message
+  HAL_UART_Transmit(&huart2, "Starting sensor program.", 50, 100);
+
   // LED startup indicator
   HAL_GPIO_WritePin(LED_BLUE_0_GPIO_Port, LED_BLUE_0_Pin, GPIO_PIN_SET);
   HAL_Delay(500);
@@ -149,6 +152,8 @@ int main(void)
 		  HAL_UART_Transmit(&huart2, "EMPTY\n", 6, 100);
 		  HAL_GPIO_WritePin(LED_RED_ERROR_GPIO_Port, LED_RED_ERROR_Pin, GPIO_PIN_SET);
 	  }
+
+	  HAL_Delay(500);
 
     /* USER CODE END WHILE */
 
