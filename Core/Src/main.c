@@ -42,6 +42,8 @@
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
 
+TIM_HandleTypeDef htim2;
+
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
@@ -53,8 +55,9 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_ADC1_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
-
+void elenaDelay(uint32_t timeDelayMs);		// My own non-blocking delay function
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -91,6 +94,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_ADC1_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
   /* ---- START PHASE ---- */
@@ -99,29 +103,25 @@ int main(void)
   int sensorValue;
 
   // PIN A8 (D7) talks to the signal line on sensor
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET); 	// Pull voltage down
+  HAL_GPIO_WritePin(SIGNAL_DHT_GPIO_Port, SIGNAL_DHT_Pin, GPIO_PIN_RESET); 	// Pull voltage down
   HAL_Delay(18);
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET); 		// Pull voltage up
+  HAL_GPIO_WritePin(SIGNAL_DHT_GPIO_Port, SIGNAL_DHT_Pin, GPIO_PIN_SET);	// Pull voltage up
   HAL_Delay(20);
 
   // Change signal pin to read
   GPIOA->MODER &= ~(1<<16);                             	// Set the 16th bit (MODE8) to zero (Input mode)
 
   // UART Startup Message
-  HAL_UART_Transmit(&huart2, "Starting sensor program.", 50, 100);
+  HAL_UART_Transmit(&huart2, "Starting sensor program\r\n", 50, 100);
 
   // LED startup indicator
-  HAL_GPIO_WritePin(LED_BLUE_0_GPIO_Port, LED_BLUE_0_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_SET);
   HAL_Delay(500);
-  HAL_GPIO_WritePin(LED_GREEN_1_GPIO_Port, LED_GREEN_1_Pin, GPIO_PIN_SET);
-  HAL_Delay(500);
-  HAL_GPIO_WritePin(LED_RED_ERROR_GPIO_Port, LED_RED_ERROR_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET);
   HAL_Delay(1000);
-  HAL_GPIO_WritePin(LED_BLUE_0_GPIO_Port, LED_BLUE_0_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_RESET);
   HAL_Delay(500);
-  HAL_GPIO_WritePin(LED_GREEN_1_GPIO_Port, LED_GREEN_1_Pin, GPIO_PIN_RESET);
-  HAL_Delay(500);
-  HAL_GPIO_WritePin(LED_RED_ERROR_GPIO_Port, LED_RED_ERROR_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
   HAL_Delay(500);
 
   /* USER CODE END 2 */
@@ -131,26 +131,17 @@ int main(void)
   while (1)
   {
 	  // Turn off LED indicators
-	  HAL_GPIO_WritePin(LED_BLUE_0_GPIO_Port, LED_BLUE_0_Pin, GPIO_PIN_RESET);
-	  HAL_GPIO_WritePin(LED_GREEN_1_GPIO_Port, LED_GREEN_1_Pin, GPIO_PIN_RESET);
-	  HAL_GPIO_WritePin(LED_RED_ERROR_GPIO_Port, LED_RED_ERROR_Pin, GPIO_PIN_RESET);
+	  HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_RESET);
+	  HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
 
-	  // sensorValue = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_8);		// Digital signal read
-
-	  HAL_ADC_Start_IT(&hadc1); 							    // Start ADC Conversion
-	  sensorValue = HAL_ADC_GetValue(&hadc1);					// Get ADC value from ADC pin
-	  HAL_ADC_PollForConversion(&hadc1, 100);					// Clear some ADC flag
-
+	  sensorValue = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_8);		// Digital signal read
 
 	  if (sensorValue){
-		  HAL_UART_Transmit(&huart2, "HIGH\n", 6, 100);
-		  HAL_GPIO_WritePin(LED_BLUE_0_GPIO_Port, LED_BLUE_0_Pin, GPIO_PIN_SET);
-	  } else if (!sensorValue) {
-		  HAL_UART_Transmit(&huart2, "LOW\n", 6, 100);
-		  HAL_GPIO_WritePin(LED_GREEN_1_GPIO_Port, LED_GREEN_1_Pin, GPIO_PIN_SET);
+		  HAL_UART_Transmit(&huart2, "DATA\r\n", 6, 100);
+		  HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_SET);
 	  } else {
-		  HAL_UART_Transmit(&huart2, "EMPTY\n", 6, 100);
-		  HAL_GPIO_WritePin(LED_RED_ERROR_GPIO_Port, LED_RED_ERROR_Pin, GPIO_PIN_SET);
+		  HAL_UART_Transmit(&huart2, "EMPTY\r\n", 6, 100);
+		  HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET);
 	  }
 
 	  HAL_Delay(500);
@@ -262,6 +253,51 @@ static void MX_ADC1_Init(void)
 }
 
 /**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 15;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 999;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -330,7 +366,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, LED_GREEN_Pin|SIGNAL_DHT_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LED_BLUE_0_Pin|LED_RED_ERROR_Pin|LED_GREEN_1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, LED_RED_Pin|LED_GREENB4_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : LED_GREEN_Pin */
   GPIO_InitStruct.Pin = LED_GREEN_Pin;
@@ -339,13 +375,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(LED_GREEN_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LED_BLUE_0_Pin LED_RED_ERROR_Pin LED_GREEN_1_Pin */
-  GPIO_InitStruct.Pin = LED_BLUE_0_Pin|LED_RED_ERROR_Pin|LED_GREEN_1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
   /*Configure GPIO pin : SIGNAL_DHT_Pin */
   GPIO_InitStruct.Pin = SIGNAL_DHT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -353,11 +382,36 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(SIGNAL_DHT_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : LED_RED_Pin LED_GREENB4_Pin */
+  GPIO_InitStruct.Pin = LED_RED_Pin|LED_GREENB4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
+
+void elenaDelay(uint32_t timeDelayMs) {
+    uint32_t startTick = TIM2->CNT;
+    uint32_t endTick = startTick + timeDelayMs;
+    uint32_t overflowCount = 0;
+    uint16_t timerMaxValue = TIM2->ARR; 		// Maximum timer value
+
+	// Increment overflow counter every time the timer overflows (every millisecond)
+	while (overflowCount < timeDelayMs) {
+		if (TIM2->CNT < startTick) { 			// Detect overflow
+			overflowCount += timerMaxValue; 	// Adjust overflowCount by the maximum timer value
+	}
+		if (overflowCount >= timeDelayMs || TIM2->CNT >= endTick) {
+			break; 								// Exit the loop when the desired delay is achieved
+	}
+		startTick = TIM2->CNT;
+	}
+}
 
 /* USER CODE END 4 */
 
